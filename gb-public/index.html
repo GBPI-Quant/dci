@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meine Cloud</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      color: #333;
+    }
+
+    header {
+      background: #0078d7;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      background: #e0e0e0;
+      padding: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: #0078d7;
+      font-weight: bold;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      padding: 1rem;
+    }
+
+    .card {
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background: #ddd;
+      margin-top: 2rem;
+    }
+
+    @media (max-width: 600px) {
+      nav {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Meine Cloud</h1>
+    <p>Willkommen in deiner persönlichen Cloud-Oberfläche von MARTIN</p>
+  </header>
+
+  <nav>
+    <a href="#">Dashboard</a>
+    <a href="#">Dateien</a>
+    <a href="#">Einstellungen dürfen nicht geändert werden</a>
+    <a href="#">Logout</a>
+  </nav>
+
+  <main class="container">
+    <div class="card">
+      <h2>Speicherübersicht</h2>
+      <p>Du hast 12 GB von 50 GB verwendet.</p>
+    </div>
+    <div class="card">
+      <h2>Letzte Dateien</h2>
+      <ul>
+        <li>bericht.pdf</li>
+        <li>foto.jpg</li>
+        <li>notizen.txt</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>Aktivität</h2>
+      <p>Letzter Login: Heute um 10:12 Uhr</p>
+    </div>
+  </main>
+
+  <h2>Rechner Starten</h2>
+  <form action="/startvm" method="POST">
+    <label for="vmName">VM-Name:</label>
+    <input type="text" id="vmName" name="vmName" required>
+    <button type="submit">Start</button>
+  </form>
+ <h2>Rechner Stoppen</h2>
+  <form action="/stopvm" method="POST">
+    <label for="vmName">VM-Name:</label>
+    <input type="text" id="vmName" name="vmName" required>
+    <button type="submit">Stop</button>
+  </form>
+  <footer>
+    &copy; 2025 Meine Cloud – Alle Rechte vorbehalten
+  </footer>
+</body>
+</html>

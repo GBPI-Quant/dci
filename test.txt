@@ -1,2 +1,3 @@
 In meiner ersten Übung mit Git und GitHub
 möchte ich diese Repository zu meinem Rechner klonen.
+zweite Zeile
