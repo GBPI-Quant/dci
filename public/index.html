@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meine Cloud – VM Dashboard</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;}
+  body{background:#f0f2f5;color:#333;}
+  header{background:linear-gradient(90deg,#0078d7,#00bcd4);color:#fff;padding:1.5rem;text-align:center;}
+  header h1{margin-bottom:0.5rem;font-size:2rem;}
+  header button{padding:0.4rem 0.8rem;border:none;border-radius:6px;cursor:pointer;background:#fff;color:#0078d7;font-weight:bold;margin-top:0.5rem;transition:all 0.3s;}
+  header button:hover{background:#0078d7;color:#fff;}
+  .container{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;padding:1rem;}
+  .card{background:white;padding:1.5rem;border-radius:15px;box-shadow:0 8px 20px rgba(0,0,0,0.1);transition:transform 0.2s, background 0.3s;}
+  .card:hover{transform:translateY(-5px);}
+  .card h2{margin-bottom:0.8rem;color:#0078d7;}
+  .vm-card{display:flex;flex-direction:column;gap:0.5rem;}
+  .vm-card input{padding:0.5rem;border-radius:6px;border:1px solid #ccc;width:100%;font-size:0.95rem;}
+  .vm-card button{padding:0.6rem;border:none;border-radius:8px;background:#0078d7;color:white;font-weight:bold;cursor:pointer;transition:background 0.3s;font-size:1rem;}
+  .vm-card button:hover{background:#005ea3;}
+  .status{font-weight:bold;margin-top:0.5rem;font-size:0.95rem;}
+  footer{text-align:center;padding:1rem;background:#ddd;margin-top:2rem;border-radius:10px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Meine Cloud – VM Dashboard</h1>
+  <button id="colorBtn">Farbschema ändern</button>
+</header>
+
+<main class="container" id="vmContainer"></main>
+
+<footer>&copy; 2025 Meine Cloud – Alle Rechte vorbehalten</footer>
+
+<script>
+const colors = [['#ff9a9e','#fad0c4'],['#a18cd1','#fbc2eb'],['#fbc2eb','#a6c1ee'],['#84fab0','#8fd3f4'],['#cfd9df','#e2ebf0']];
+const vmContainer = document.getElementById('vmContainer');
+
+// Dynamisch VM Karten erstellen
+async function loadVMs(){
+  const res = await fetch('/listvms');
+  const vms = await res.json();
+  vmContainer.innerHTML = '';
+  vms.forEach(vm => {
+    const card = document.createElement('div');
+    card.className = 'card vm-card';
+    card.id = `card-${vm}`;
+    card.innerHTML = `
+      <h2>${vm}</h2>
+      <form onsubmit="return handleVMAction('${vm}','start')">
+        <input type="hidden" name="vmName" value="${vm}">
+        <button type="submit" id="start-${vm}">Start VM</button>
+      </form>
+      <form onsubmit="return handleVMAction('${vm}','stop')">
+        <input type="hidden" name="vmName" value="${vm}">
+        <button type="submit" id="stop-${vm}">Stop VM</button>
+      </form>
+      <p>Status: <span id="status-${vm}" class="status">unbekannt</span></p>
+      <p>CPU: <span id="cpu-${vm}">n/a</span>, RAM: <span id="ram-${vm}">n/a</span> MB, Disk: <span id="disk-${vm}">n/a</span> MB</p>
+      <p>Laufzeit: <span id="time-${vm}">n/a</span></p>
+    `;
+    vmContainer.appendChild(card);
+    updateVM(vm);
+  });
+}
+
+// Status, Buttons & Ressourcen aktualisieren
+async function updateVM(vm){
+  try{
+    const res = await fetch(`/statusvm/${encodeURIComponent(vm)}`);
+    const data = await res.json();
+    const statusEl = document.getElementById(`status-${vm}`);
+    statusEl.textContent = data.status;
+    // Buttons aktivieren/deaktivieren
+    document.getElementById(`start-${vm}`).disabled = data.running;
+    document.getElementById(`stop-${vm}`).disabled = !data.running;
+
+    // Ressourcen & Laufzeit
+    const res2 = await fetch(`/resources/${encodeURIComponent(vm)}`);
+    const r = await res2.json();
+    document.getElementById(`cpu-${vm}`).textContent = r.cpu;
+    document.getElementById(`ram-${vm}`).textContent = r.ram;
+    document.getElementById(`disk-${vm}`).textContent = r.disk;
+
+    if(r.startTime){
+      const start = new Date(r.startTime);
+      const now = new Date();
+      const diff = Math.max(0, now-start);
+      const h = Math.floor(diff/3600000);
+      const m = Math.floor((diff%3600000)/60000);
+      const s = Math.floor((diff%60000)/1000);
+      document.getElementById(`time-${vm}`).textContent = `${h}h ${m}m ${s}s`;
+    }
+  } catch(err){
+    console.error(err);
+  }
+}
+
+// Start/Stop Buttons
+function handleVMAction(vm, action){
+  fetch(`/${action}vm`,{
+    method:'POST',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:`vmName=${encodeURIComponent(vm)}`
+  })
+  .then(r=>r.text())
+  .then(msg=>{
+    alert(msg);
+    updateVM(vm);
+  })
+  .catch(err=>alert('Fehler'));
+  return false;
+}
+
+// Farbschema ändern
+document.getElementById('colorBtn').addEventListener('click',()=>{
+  VMS = ['Windows','Alma'];
+  VMS.forEach(vm=>{
+    const card = document.getElementById(`card-${vm}`);
+    const color = colors[Math.floor(Math.random()*colors.length)];
+    card.style.background = `linear-gradient(135deg,${color[0]},${color[1]})`;
+    card.style.color = '#fff';
+  });
+});
+
+// Alle 5 Sekunden aktualisieren
+setInterval(()=>{ ['Windows','Alma'].forEach(vm=>updateVM(vm)); },5000);
+
+loadVMs();
+</script>
+</body>
+</html>
+
